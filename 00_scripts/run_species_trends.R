@@ -64,25 +64,26 @@ if (to_run == TRUE) {
       as.character()
     
     data_path = cur_metadata %>% 
-      dplyr::summarise(SIMDATA.PATH = glue("{SIMDATA.PATHONLY}data{k}.csv")) %>% 
+      dplyr::summarise(SIMDATA.PATH = glue("{SIMDATA.PATHONLY}data{k}.rds")) %>% 
       as.character()
     
     
     tictoc::tic(glue("Species trends for {cur_mask}: {k}/{max(cur_assignment)}"))
     
     # read data files
-    data = read.csv(data_path) %>% 
+    data = readRDS(data_path) %>% 
       mutate(across(.cols = c(gridg1, gridg2, gridg3, gridg4, month, timegroups),
                     ~ as.factor(.))) %>% 
       mutate(gridg = gridg3)
     
     
     # start parallel
-    n.cores = parallel::detectCores()/2
+    n.cores = 1
     # create the cluster
     my.cluster = parallel::makeCluster(
       n.cores, 
-      type = "PSOCK"
+      type = "PSOCK",
+      outfile = "log.txt"
     )
     # register it to be used by %dopar%
     doParallel::registerDoParallel(cl = my.cluster)

@@ -70,7 +70,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
   preimp = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
              "LOCALITY.ID","LOCALITY.TYPE","REVIEWED","APPROVED","STATE","COUNTY",
              "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED","OBSERVER.ID",
-             "PROTOCOL.TYPE","DURATION.MINUTES","EFFORT.DISTANCE.KM","EXOTIC.CODE",
+             "PROTOCOL.NAME","DURATION.MINUTES","EFFORT.DISTANCE.KM","EXOTIC.CODE",
              "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER","SAMPLING.EVENT.IDENTIFIER")
   
   # CATEGORY - species, subspecies, hybrid, etc.; COMMON.NAME - common name of species;
@@ -95,21 +95,21 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
                     stringsAsFactors = F, na.strings = c(""," ",NA))
 
   # read sensitive species data
-  nms1 = read.delim(sensitivepath, nrows = 1, sep = "\t", header = T, quote = "", stringsAsFactors = F, 
-                    na.strings = c(""," ",NA))
-  nms1 = names(nms1)
-  nms1[!(nms1 %in% preimp)] = "NULL"
-  nms1[nms1 %in% preimp] = NA
+  # nms1 = read.delim(sensitivepath, nrows = 1, sep = "\t", header = T, quote = "", stringsAsFactors = F, 
+  #                   na.strings = c(""," ",NA))
+  # nms1 = names(nms1)
+  # nms1[!(nms1 %in% preimp)] = "NULL"
+  # nms1[nms1 %in% preimp] = NA
   
 
   # read sensitive species data
 
-  sesp = read.delim(sensitivepath, colClasses = nms1, sep = "\t", header = T, quote = "", 
-                    stringsAsFactors = F, na.strings = c(""," ",NA))
+  # sesp = read.delim(sensitivepath, colClasses = nms1, sep = "\t", header = T, quote = "", 
+  #                   stringsAsFactors = F, na.strings = c(""," ",NA))
 
   
   # merge both data frames
-  data = rbind(data, sesp) %>%
+  data = rbind(data) %>%
     # remove unapproved records and records of escapees
     filter(REVIEWED == 0 | APPROVED == 1) %>%
     filter(!EXOTIC.CODE %in% c("X"))
@@ -121,7 +121,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
           "LOCALITY.ID", "REVIEWED","APPROVED","EXOTIC.CODE",
           "LOCALITY.TYPE","STATE","COUNTY",
           "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED",
-          "OBSERVER.ID","PROTOCOL.TYPE",
+          "OBSERVER.ID","PROTOCOL.NAME",
           "DURATION.MINUTES","EFFORT.DISTANCE.KM",
           "ALL.SPECIES.REPORTED","group.id","SAMPLING.EVENT.IDENTIFIER")
   
@@ -265,7 +265,7 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
   load(mappath1)
   load(mappath2)
   load(mappath3)
-  load(papath)
+  # load(papath)
   
   load(maskspath)
   names(habmasks_sf)[1] = "gridg1"
@@ -286,7 +286,7 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
     st_as_sf(coords = c("LONGITUDE", "LATITUDE"), remove = F) %>% 
     st_set_crs(st_crs(india_sf)) %>%
     # PAs
-    st_join(pa_sf %>% dplyr::select(NAME)) %>%
+    # st_join(pa_sf %>% dplyr::select(NAME)) %>%
     # grid cells
     st_join(g0_sf %>% dplyr::select(GRID.G0)) %>% 
     st_join(g1_sf %>% dplyr::select(GRID.G1)) %>% 
@@ -297,11 +297,11 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
     st_drop_geometry()
   
   temp = temp %>% 
-    distinct(NAME, GRID.G0, GRID.G1, GRID.G2, GRID.G3, GRID.G4, group.id, INLAND) %>% 
+    distinct(GRID.G0, GRID.G1, GRID.G2, GRID.G3, GRID.G4, group.id, INLAND) %>% 
     group_by(group.id) %>% 
     slice(1) %>% 
     ungroup() %>% 
-    magrittr::set_colnames(c("pa.name","gridg0","gridg1","gridg2","gridg3",
+    magrittr::set_colnames(c("gridg0","gridg1","gridg2","gridg3",
                              "gridg4","group.id","INLAND"))
   
   data = data %>% 
@@ -353,7 +353,7 @@ completelistcheck = function(data)
   
   # list of on-paper complete lists
   temp = data %>%
-    filter(ALL.SPECIES.REPORTED == 1, PROTOCOL.TYPE != "Incidental") %>%
+    filter(ALL.SPECIES.REPORTED == 1, PROTOCOL.NAME != "Incidental") %>%
     group_by(group.id) %>% slice(1)
   
   # choose checklists without info on duration with 3 or fewer species
@@ -372,7 +372,7 @@ completelistcheck = function(data)
            speed > vel | # too fast
            (DURATION.MINUTES < 3) | # too short
            (sut < time & no.sp <= 3) | # species per unit time too slow
-           PROTOCOL.TYPE == "Incidental" | # incidental
+           PROTOCOL.NAME == "Incidental" | # incidental
            (!is.na(hr) & ((hr <= 4 & end <= 4) | # nocturnal filter
                             (hr >= 20 & end <= 28)))) ~ 0, 
       # true incomplete lists
@@ -482,8 +482,8 @@ dataspeciesfilter = function(cur_mask = "none") {
   
   data = data0 %>% 
     dplyr::select(-CATEGORY,-REVIEWED,-APPROVED,-ST_NM,-DISTRICT,
-                  -LOCALITY.TYPE,-LOCALITY.ID,-pa.name,-maskWdl,-maskCrp,-maskOne,
-                  -LATITUDE,-LONGITUDE,-PROTOCOL.TYPE,-EXOTIC.CODE,-day,-cyear,
+                  -LOCALITY.TYPE,-LOCALITY.ID,-maskWdl,-maskCrp,-maskOne,
+                  -LATITUDE,-LONGITUDE,-PROTOCOL.NAME,-EXOTIC.CODE,-day,-cyear,
                   -DURATION.MINUTES,-TIME.OBSERVATIONS.STARTED,-EFFORT.DISTANCE.KM)
   
   stats7 = paste(nrow(data[data$ALL.SPECIES.REPORTED == 1,]),

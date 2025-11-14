@@ -107,49 +107,49 @@ toc() # 495 sec
 
 # 2. processing: woodland mask ----------------------------------------------
 
-tic("dataspeciesfilter for woodland mask")
-dataspeciesfilter(cur_mask = "woodland")
-toc() # 240 sec
+# tic("dataspeciesfilter for woodland mask")
+# dataspeciesfilter(cur_mask = "woodland")
+# toc() # 240 sec
 
 
-# 3. processing: cropland mask ----------------------------------------------
+# # 3. processing: cropland mask ----------------------------------------------
 
-tic("dataspeciesfilter for cropland mask")
-dataspeciesfilter(cur_mask = "cropland")
-toc() # 60 sec
-
-
-# 4. processing: ONEland mask -----------------------------------------------
-
-tic("dataspeciesfilter for ONEland mask")
-dataspeciesfilter(cur_mask = "ONEland")
-toc() # 60 sec
+# tic("dataspeciesfilter for cropland mask")
+# dataspeciesfilter(cur_mask = "cropland")
+# toc() # 60 sec
 
 
-# 5. processing: PA mask ----------------------------------------------------
+# # 4. processing: ONEland mask -----------------------------------------------
 
-tic("dataspeciesfilter for PA mask")
-dataspeciesfilter(cur_mask = "PA")
-toc() # 80 sec
+# tic("dataspeciesfilter for ONEland mask")
+# dataspeciesfilter(cur_mask = "ONEland")
+# toc() # 60 sec
 
 
-# 6. processing: states ---------------------------------------------
+# # 5. processing: PA mask ----------------------------------------------------
 
-tic.clearlog()
-tic("dataspeciesfilter for all states")
+# tic("dataspeciesfilter for PA mask")
+# dataspeciesfilter(cur_mask = "PA")
+# toc() # 80 sec
 
-analyses_metadata %>% 
-  filter(MASK.TYPE == "state") %>% 
-  distinct(MASK) %>% 
-  pull(MASK) %>% 
-  # walking dataspeciesfilter() over each state
-  walk(~ {
+
+# # 6. processing: states ---------------------------------------------
+
+# tic.clearlog()
+# tic("dataspeciesfilter for all states")
+
+# analyses_metadata %>% 
+#   filter(MASK.TYPE == "state") %>% 
+#   distinct(MASK) %>% 
+#   pull(MASK) %>% 
+#   # walking dataspeciesfilter() over each state
+#   walk(~ {
     
-    tic(glue("dataspeciesfilter for {.x} state"))
-    dataspeciesfilter(cur_mask = .x)
-    toc(log = TRUE, quiet = TRUE) 
+#     tic(glue("dataspeciesfilter for {.x} state"))
+#     dataspeciesfilter(cur_mask = .x)
+#     toc(log = TRUE, quiet = TRUE) 
     
-  })
+#   })
 
-toc(log = TRUE, quiet = TRUE) 
-tic.log()
+# toc(log = TRUE, quiet = TRUE) 
+# tic.log()

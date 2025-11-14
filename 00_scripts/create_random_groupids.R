@@ -27,7 +27,7 @@ if (to_run == TRUE) {
   locs = read.csv(read_path)
   
   # start parallel
-  n.cores = parallel::detectCores()/2
+  n.cores = 15
   # create the cluster
   my.cluster = parallel::makeCluster(
     n.cores, 
@@ -42,7 +42,7 @@ if (to_run == TRUE) {
   # foreach::getDoParWorkers()
   
   
-  randomgroupids = foreach(i = 1:1000, .combine = 'cbind') %dopar%
+  randomgroupids = foreach(i = 1:100, .combine = 'cbind') %dopar%
     createrandomlocs(locs)
   
   parallel::stopCluster(cl = my.cluster)
