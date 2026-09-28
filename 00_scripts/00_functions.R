@@ -6,7 +6,7 @@ library(glue)
 library(dtplyr)
 library(data.table)
 library(lubridate)
-library(sf)
+# library(sf)
 library(reshape2)
 library(unmarked)
 library(tictoc)
@@ -200,22 +200,22 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
   data = read.delim(rawpath, colClasses = nms, sep = "\t", header = T, quote = "", 
                     stringsAsFactors = F, na.strings = c(""," ",NA))
 
-  # read sensitive species data
-  nms1 = read.delim(sensitivepath, nrows = 1, sep = "\t", header = T, quote = "", stringsAsFactors = F, 
-                    na.strings = c(""," ",NA))
-  nms1 = names(nms1)
-  nms1[!(nms1 %in% preimp)] = "NULL"
-  nms1[nms1 %in% preimp] = NA
+  # # read sensitive species data
+  # nms1 = read.delim(sensitivepath, nrows = 1, sep = "\t", header = T, quote = "", stringsAsFactors = F, 
+  #                   na.strings = c(""," ",NA))
+  # nms1 = names(nms1)
+  # nms1[!(nms1 %in% preimp)] = "NULL"
+  # nms1[nms1 %in% preimp] = NA
   
 
-  # read sensitive species data
+  # # read sensitive species data
 
-  sesp = read.delim(sensitivepath, colClasses = nms1, sep = "\t", header = T, quote = "", 
-                    stringsAsFactors = F, na.strings = c(""," ",NA))
+  # sesp = read.delim(sensitivepath, colClasses = nms1, sep = "\t", header = T, quote = "", 
+  #                   stringsAsFactors = F, na.strings = c(""," ",NA))
 
   
   # merge both data frames
-  data = rbind(data, sesp) %>%
+  data = rbind(data) %>%
     # remove unapproved records and records of escapees
     filter(REVIEWED == 0 | APPROVED == 1) %>%
     filter(!EXOTIC.CODE %in% c("X"))
@@ -406,7 +406,7 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
   load(mappath1)
   load(mappath2)
   load(mappath3)
-  load(papath)
+  # load(papath)
   
   load(maskspath)
   names(habmasks_sf)[1] = "gridg1"
@@ -425,7 +425,7 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
     st_as_sf(coords = c("LONGITUDE", "LATITUDE"), remove = F) %>% 
     st_set_crs(st_crs(india_sf)) %>%
     # PAs
-    st_join(pa_sf %>% dplyr::select(NAME)) %>%
+    # st_join(pa_sf %>% dplyr::select(NAME)) %>%
     # grid cells
     st_join(g0_sf %>% dplyr::select(GRID.G0)) %>% 
     st_join(g1_sf %>% dplyr::select(GRID.G1)) %>% 
@@ -436,9 +436,9 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
     st_drop_geometry()
   
   temp = temp %>% 
-    distinct(NAME, GRID.G0, GRID.G1, GRID.G2, GRID.G3, GRID.G4, group.id, INLAND) %>% 
+    distinct(GRID.G0, GRID.G1, GRID.G2, GRID.G3, GRID.G4, group.id, INLAND) %>% 
     distinct(group.id, .keep_all = TRUE) |> 
-    magrittr::set_colnames(c("pa.name","gridg0","gridg1","gridg2","gridg3",
+    magrittr::set_colnames(c("gridg0","gridg1","gridg2","gridg3",
                              "gridg4","group.id","INLAND"))
   
   data = data %>% 
@@ -608,7 +608,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
   
   data = data0 %>% 
     dplyr::select(-CATEGORY,-REVIEWED,-APPROVED,-ST_NM,-DISTRICT,
-                  -LOCALITY.TYPE,-LOCALITY.ID,-pa.name,-maskWdl,-maskCrp,-maskOne,
+                  -LOCALITY.TYPE,-LOCALITY.ID,-maskWdl,-maskCrp,-maskOne,
                   -LATITUDE,-LONGITUDE,-PROTOCOL.NAME,-EXOTIC.CODE,-day,-cyear,
                   -DURATION.MINUTES,-TIME.OBSERVATIONS.STARTED,-EFFORT.DISTANCE.KM)
   
@@ -1302,7 +1302,7 @@ singlespeciesrun_internal = function(container, reproducible, data, species_inde
   rm(data)
 
   if(reproducible) {
-    message("Setting seed to 0 to ensure reproducible runs")
+    # message("Setting seed to 0 to ensure reproducible runs")
     set.seed(0)
   }
 
@@ -1468,7 +1468,7 @@ singlespeciesrun_internal = function(container, reproducible, data, species_inde
   
   
 
-  tocomb = c(dataset_size, species, f1$freq, f1$se)
+  tocomb = c(species, f1$freq, f1$se)
   return(tocomb)
   # each species's tocomb becomes one column in final trends0 output object
   
@@ -1477,6 +1477,7 @@ singlespeciesrun_internal = function(container, reproducible, data, species_inde
 singlespeciesrun = function(container, reproducible, stats_dir, species_dir, data, species_index, species,
 			    specieslist, restrictedspecieslist, singleyear = FALSE)
 {
+  browser()
   ram <- peakRAM(retval <- singlespeciesrun_internal(container, reproducible, data, species_index, species,
 						     specieslist, restrictedspecieslist, singleyear))
   run_stats <- data.frame(data_rows = retval[1],

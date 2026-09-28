@@ -11,7 +11,7 @@ source("00_scripts/00_functions.R")
 # Is the current run for a new major SoIB version (every 3-4 years), 
 # or for an interannual update (every year between major versions)?
 # testing git
-interannual_update = TRUE
+interannual_update = FALSE
 
 
 # PART 0 (paths) ----------------------------------------------------------
@@ -38,7 +38,7 @@ source("00_scripts/01_create_metadata.R")
 # - "rawdata.RData"
 
 tic("Reading and cleaning raw data")
-readcleanrawdata(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt", 
+readcleanrawdata(rawpath = "/home/nilsko/ceres/eBird-data/data-raw/ebd_IN_smp_relMay-2025/ebd_IN_smp_relMay-2025.txt", 
                  sensitivepath = "00_data/ebd_sensitive_relAug-2025_IN.txt")
 toc() # 42 min
 
@@ -185,7 +185,7 @@ load("00_data/analyses_metadata.RData")
 
 
 cur_mask <- "none"
-my_assignment <- 1:1 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:100 # CHANGE FOR YOUR SUBSET
 tic(glue("Generated subsampled data for full country (# {min(my_assignment)}:{max(my_assignment)})"))
 source("00_scripts/create_random_datafiles.R")
 toc() # 124 min (~ 2 h) for 100
@@ -259,7 +259,7 @@ rm(not_my_states)
 load("00_data/analyses_metadata.RData")
 
 cur_mask <- "none"
-my_assignment <- 1:1 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:10 # CHANGE FOR YOUR SUBSET
 tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 toc() # 102 hours
@@ -409,13 +409,16 @@ tic("Resolved trends & occupancy for all 42 masks")
 print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
 
 # start multiworker parallel session
-plan(multisession, workers = parallel::detectCores()/2)
+plan(multisession, workers = 25)
 
 analyses_metadata %>% 
   pull(MASK) %>% 
   # future-walking over each mask
-  future_walk(.progress = TRUE, .options = furrr_options(seed = TRUE), ~ {
-    
+  # future_walk(.progress = TRUE, .options = furrr_options(seed = TRUE), ~ 
+  {
+    if (.x != "none") {
+      return(NULL)
+    }
     # new environment for each parallel iteration
     cur_env <- new.env()
     assign("cur_mask", .x, envir = cur_env)
@@ -425,7 +428,7 @@ analyses_metadata %>%
     source("00_scripts/resolve_trends_and_occupancy.R", local = cur_env)
     toc()
     
-  })
+  }
 
 # end multiworker parallel session
 plan(sequential)

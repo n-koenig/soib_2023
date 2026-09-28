@@ -121,7 +121,7 @@ if (to_run == TRUE) {
     
     
     # start parallel
-    n.cores = parallel::detectCores()/2
+    n.cores = 25
 
 
     # create the cluster
@@ -142,16 +142,20 @@ if (to_run == TRUE) {
     # foreach::getDoParRegistered()
     # # how many workers are available? (optional)
     # foreach::getDoParWorkers()
-    
+
     trends0 = foreach(i = listofspecies, 
                       # .verbose = TRUE,
                       .combine = 'cbind', .errorhandling = 'remove') %dopar%
-      singlespeciesrun(data = data, 
-                       species = i, 
-                       specieslist = specieslist, 
-                       restrictedspecieslist = restrictedspecieslist,
-                       singleyear = singleyear)
-    
+      singlespeciesrun_internal(
+        container = FALSE,
+        reproducible = TRUE,
+        data = data,
+        species_index = i,
+        species = i,
+        specieslist = specieslist,
+        restrictedspecieslist = restrictedspecieslist,
+        singleyear = singleyear
+      )    
     if (sys_windows == TRUE) {
       parallel::stopCluster(cl = my.cluster)
     }

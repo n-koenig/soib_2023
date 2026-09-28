@@ -18,16 +18,18 @@ groups = data_main %>%
                            Diet.Guild == "Fruit & Nect" ~ "Fruit & Nectar",
                            TRUE ~ Diet.Guild)) %>% 
   filter(!is.na(GROUP)) %>%
-  dplyr::select(eBird.English.Name.2022,GROUP,
-                SOIBv2.Long.Term.Status) %>%
-  rename(COMMON.NAME = eBird.English.Name.2022)
+  dplyr::select(eBird.English.Name.2023,GROUP,
+                SoIB.Latest.Long.Term.Status) %>%
+  rename(COMMON.NAME = eBird.English.Name.2023)
 data_trends = data_trends %>% left_join(groups) %>% 
-  filter(!SOIBv2.Long.Term.Status %in% c("Trend Inconclusive","Insufficient Data"))
+  filter(!SoIB.Latest.Long.Term.Status %in% c("Trend Inconclusive","Insufficient Data"))
 
 data_trends <- data_trends %>%
   dplyr::select(GROUP,timegroups, timegroupsf, lci_std, mean_std, rci_std) %>%
   group_by(GROUP, timegroups, timegroupsf) %>%
   reframe(across(ends_with("_std"), ~ mean(.)))
+
+browser()
 
 
 cur_spec <- data_trends %>% distinct(GROUP) %>% pull(GROUP)
@@ -53,12 +55,12 @@ if (plot_type != "composite") {
 if (plot_type == "single_mask") {
   
   plot_full_country <- data_main %>% 
-    filter(eBird.English.Name.2022 %in% cur_spec,
+    filter(eBird.English.Name.2023 %in% cur_spec,
            MASK == "none") %>% 
     {if (cur_trend == "LTT") {
-      pull(., SOIBv2.Long.Term.Status)
+      pull(., SoIB.Latest.Long.Term.Status)
     } else if (cur_trend == "CAT") {
-      pull(., SOIBv2.Current.Status)
+      pull(., SoIB.Latest.Current.Status)
     }}
   
 }
@@ -454,6 +456,6 @@ cur_plot <- plot_base +
   # theme
   ggtheme_soibtrend()
 
-jpeg(path_write_file, units="in", width=11, height=7.5, res=600)
+# jpeg(path_write_file, units="in", width=11, height=7.5, res=600)
 grid::grid.draw(cur_plot)
-dev.off()
+# dev.off()

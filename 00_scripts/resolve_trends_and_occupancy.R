@@ -77,7 +77,7 @@ if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
   
 } else {
   
-  skip_res_occu <- FALSE 
+  skip_res_occu <- TRUE 
   
   if (cur_metadata$MASK.TYPE == "state") {
     
